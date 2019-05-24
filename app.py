@@ -19,12 +19,14 @@ ma = Marshmallow(app)
 class User(db.Model):
     __tablename__="users" # todos
     id = db.Column(db.Integer, primary_key=True)
+    userRole = db.Column(db.String(25), nullable=False)
     userName = db.Column(db.String(25), nullable=False)
     password = db.Column(db.String(25), nullable=False)
     
-    def __init__(self, userName, password):
+    def __init__(self, userName, password, userRole):
         self.userName = userName
         self.password = password
+        self.userRole = userRole
 
 class UserSchema(ma.Schema):
     class Meta:
@@ -41,15 +43,16 @@ def get_users():
 
 @app.route("/user<id>", methods=["GET"])
 def get_user(id):
-    user = db.session.query(User.id, User.userName, User.password).filter(User.id == id).first()
+    user = db.session.query(User.id, User.userName, User.password, User.userRole).filter(User.id == id).first()
     result = user_schema.dump(user)
     return jsonify(result.data)
 
 @app.route("/add-user", methods=["POST"])
 def add_user():
+    userRole = request.json["userRole"]
     userName = request.json["userName"]
     password = request.json["password"]
-    record = User(userName, password)
+    record = User(userName, password, userRole)
 
     db.session.add(record)
     db.session.commit()
